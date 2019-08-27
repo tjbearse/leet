@@ -22,8 +22,11 @@ string longestPalindrome(string s) {
 	// restrit range to not check if there isn't room to beat us
 	while (i >= lbest/2 && i < len - lbest/2) {
 		int L = i, R = i;
-		if (L - 1 >= 0 && s[L-1] == s[L]) {
+		while (L - 1 >= 0 && s[L-1] == s[i]) {
 			L--;
+		}
+		while (R + 1 < len && s[R+1] == s[i]) {
+			R++;
 		}
 		while(L-1 >= 0 &&
 			R+1 < len &&
@@ -52,6 +55,7 @@ TEST_CASE("even palindrome") {
 }
 
 TEST_CASE("odd palindrome") {
+	REQUIRE( longestPalindrome("CCC") == "CCC");
 	REQUIRE( longestPalindrome("A") == "A");
 	REQUIRE( longestPalindrome("BAB") == "BAB");
 	REQUIRE( longestPalindrome("BABy") == "BAB");
