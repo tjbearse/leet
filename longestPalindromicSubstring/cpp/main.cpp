@@ -8,60 +8,39 @@
 #include <string>
 using namespace std;
 
-struct range {
-	int start;
-	int len;
-};
-
-range checkEven(const string & s, int i) {
-	int c = 0;
-	while(i-c-1 >= 0 &&
-		i+c < s.size() &&
-		s[i-c-1] == s[i+c]
-	) {
-		c++;
-	}
-	return range{i-c,2*c};
-}
-
-range checkOdd(const string & s, int i) {
-	int c = 0;
-	while(i-c-1 >= 0 &&
-		i+c+1 < s.size() &&
-		s[i-c-1] == s[i+c+1]
-	) {
-		c++;
-	}
-	return range{i-c,1+2*c};
-}
-
 string longestPalindrome(string s) {
 	if (s == "") {
 		return s;
 	}
-	range best{0,1};
+	int ibest = 0;
+	int lbest = 1;
 	int len = s.size();
-	int c = len/2;
-	int o = 0;
-	int i = c + o;
-	while (i > best.len/2 && i < len - best.len/2) {
-		range even = checkEven(s, i);
-		if (even.len > best.len) {
-			best = even;
+	int center = len/2;
+	int offset = 0;
+	int i = center;
+	// go from the center outward to get big palindromes first
+	// restrit range to not check if there isn't room to beat us
+	while (i >= lbest/2 && i < len - lbest/2) {
+		int L = i, R = i;
+		if (L - 1 >= 0 && s[L-1] == s[L]) {
+			L--;
 		}
-		range odd = checkOdd(s, i);
-		if (odd.len > best.len) {
-			best = odd;
+		while(L-1 >= 0 &&
+			R+1 < len &&
+			s[L-1] == s[R+1]
+		) {
+			R++;
+			L--;
 		}
-		if (o >= 0) {
-			o = -(o + 1);
-		} else {
-			o = -o;
+		int lcurr = (R-L)+1;
+		if (lcurr >= lbest && (lcurr > lbest || L < ibest)) {
+			ibest = L;
+			lbest = lcurr;
 		}
-		i = c + o;
+		offset = (offset >= 0) ? -(offset + 1) : -offset;
+		i = center + offset;
 	}
-	string ans(s, best.start, best.len);
-	return ans;
+	return s.substr(ibest, lbest);
 }
 
 TEST_CASE("even palindrome") {
@@ -91,9 +70,10 @@ TEST_CASE("multiple palindromes") {
 }
 
 TEST_CASE("undefined string") {
-	REQUIRE( longestPalindrome("AB").size() == 1); // equal
-	REQUIRE( longestPalindrome("AAxyBB").size() == 2); // equal
-	REQUIRE( longestPalindrome("ACAxyBCB").size() == 3); // equal
+	REQUIRE( longestPalindrome("babad") == "bab");
+	REQUIRE( longestPalindrome("AB") == "A"); // equal
+	REQUIRE( longestPalindrome("AAxyBB") == "AA"); // equal
+	REQUIRE( longestPalindrome("ACAxyBCB") == "ACA"); // equal
 
 	REQUIRE( longestPalindrome("ABCDEFEDCBAabcdefedcba").size() == string("ABCDEFEDCBA").size()); // equal
 	REQUIRE( longestPalindrome("abcdefedcbaxABCDEFEDCBAyabcdefedcba").size() == string("abcdefedcba").size()); // equal
